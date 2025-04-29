@@ -30,28 +30,19 @@ module udp_switch # (
     UDP_RX_HEADER_IF.Sink   udp_rx_header_if_sink,
     AXIS_IF.Slave           udp_rx_payload_if_sink
 );
-    var logic [$clog2(PORT_COUNT)-1:0] select;
 
+    var logic [$clog2(PORT_COUNT)-1:0] select;
     var logic drop;
 
-    var logic [15:0] port;
-    var logic [31:0] ip;
-    
-    assign port = udp_rx_header_if_sink.dest_port;
-    assign ip = udp_rx_header_if_sink.ip_dest_ip;
-
     always_comb begin
-        if (reset) begin
-            select = '0;
-            drop = 1'b0;
-        end else begin
-            for (int i = 0; i < PORT_COUNT; i++) begin
-                if (port==PORTS[i] && ip==local_ip) begin
-                    select = i;
-                    drop = 1'b0;
-                end else begin
-                    drop = 1'b1;
-                end
+        select = '0;
+        drop = 1'b0;
+        for (int i = 0; i < PORT_COUNT; i++) begin
+            if (udp_rx_header_if_sink.dest_port==PORTS[i] 
+                && udp_rx_header_if_sink.ip_dest_ip==local_ip)  begin
+                select = i;
+            end else begin
+                drop = 1'b1;
             end
         end
     end
